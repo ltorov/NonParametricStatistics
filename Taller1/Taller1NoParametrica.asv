@@ -1,0 +1,178 @@
+Temps = readtable('Temperaturas.txt');
+Temps = table2array(Temps);
+%%
+%Punto 1
+%Distribución empírica
+A = zeros(35,1);
+hold on
+title("Distribuciones empíricas para las temperaturas año a año")
+title("Empirical distributions for Canadian year to year temperatures")
+xlabel("Temperature")
+ylabel("Probability")
+for i = 1:35
+    temp = Temps(:,i);
+    [F,t] = ecdf(temp);
+    tq1 = t(find(t>=0));
+    tq2 = t(find(t<0));
+    Fq1 = F(find(t>=0));
+    Fq2 = F(find(t<0));
+    A(i) = trapz(tq1,1-Fq1) - trapz(tq2,Fq2)
+    plot(t,F)
+end
+
+%%
+%Tabla de doble entrada con la media
+
+means = mean(Temps,1);
+
+doubletable = zeros(36,36);
+
+doubletable(1,2:36) = means;
+
+doubletable(2:36,1) = means;
+
+for i = 2:36
+    for j = 2:36
+        valori = means(i-1);
+        valorj = means(j-1);
+        doubletable(i,j) = i-1;
+        if valorj > valori
+            doubletable(i,j) = j-1;
+        end
+       
+        if i == j
+            doubletable(i,j) = 0; 
+        end
+
+         
+
+    end
+end
+
+array2table(doubletable)
+
+
+%%
+%Tabla de doble entrada con la estimación empírica de la media
+means = A
+doubletable = zeros(36,36);
+
+doubletable(1,2:36) = means;
+
+doubletable(2:36,1) = means;
+
+for i = 2:36
+    for j = 2:36
+        valori = means(i-1);
+        valorj = means(j-1);
+        doubletable(i,j) = i-1;
+        if valorj > valori
+            doubletable(i,j) = j-1;
+        end
+        if i == j
+            doubletable(i,j) = 0; 
+        end
+    end
+end
+
+array2table(doubletable)
+
+%%
+temp1 = Temps(:,1);
+temp2 = Temps(:,2);
+[F1,t1] = ecdf(temp1);
+[F2,t2] = ecdf(temp2);
+
+max(F1)==max(F2)
+%%
+%Punto 2
+temp = Temps(:,1);
+[F,t] = ecdf(temp);
+tq1 = t(find(t>=0));
+tq2 = t(find(t<0));
+Fq1 = F(find(t>=0));
+Fq2 = F(find(t<0));
+estimator = trapz(tq1,1-Fq1) - trapz(tq2,Fq2)
+
+means = mean(Temps,1);
+clf
+hold on
+plot (1:35, A)
+plot (1:35,means)
+title("Plug-in estimator vs Maximum Likelihood Estimator for the average temperature in Canada")
+xlabel("Year")
+ylabel("Estimated Temperature")
+%%
+%Punto 3
+[minimum, minindex] = min(means);
+[maximum, maxindex] = max(means);
+
+[minF,mint] = ecdf(Temps(:,minindex));
+[maxF,maxt] = ecdf(Temps(:,maxindex));
+hold on
+title("Distribución empírica para los años con mayor y menos temperatura " + ...
+    "promedio")
+xlabel("Temperatura")
+ylabel("Probabilidad")
+plot(maxt,maxF)
+plot(mint,minF)
+legend({'Año con mayor media','Año con menor media'})
+%%
+hold on
+ecdf(Temps(:,minindex),'Bounds','on')
+
+ecdf(Temps(:,maxindex),'Bounds','on')
+title("Confidence bands for empirical distributions")
+%% 
+%Punto 4
+n = 100
+X = wblrnd(5, 0.8,n,1);
+[F,t] = ecdf(X);
+WeibulF = wblcdf(t,5,0.8);
+min(abs(WeibulF-F))
+clf
+hold on
+plot(t,WeibulF)
+plot(t,F)
+title("Función de distribución acumulada real comparada con la empírica")
+xlabel("X")
+ylabel("Probabilidad")
+%%
+maxs = zeros(991,1);
+for i = 1:1000
+    X = wblrnd(5, 0.8,i,1);
+    [F,t] = ecdf(X);
+    WeibulF = wblcdf(t,5,0.8);
+    maxs(i) = max(abs(WeibulF-F));
+end
+clf
+plot(maxs,'r')
+title("Glivenko Cantelli t")
+xlabel("Sample size (n)")
+ylabel("Maximum Error")
+%%
+%Exercise 7.
+%Se toma una muestra de 1000 personas de muestras de n datos provenientes de
+%una distribución. Se les piden ciertos datos.
+N = 1000;
+n = 100;
+%X = randn(N,n); %normal estándar
+%X = -log(rand(N,n)); %exponencial
+X = rand(N,n); %uniforme
+
+X = wblrnd(5, 0.8,N,n);
+
+%Mínimo de cada uno, cambia la distribución. Es un criterio.
+minimun = min(X');
+hist(minimun);
+
+medianStat = sort(X,1);
+medianStat = medianStat(1,:);
+hist(medianStat)
+
+[F,t] = ecdf(medianStat)
+
+plot(t,F,'r')
+title("Empirical distribution of the i-th statistic for a Weibull distribution")
+xlabel("Temperature")
+ylabel("Probability")
