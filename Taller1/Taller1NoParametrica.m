@@ -117,9 +117,12 @@ for i = 2:36
     end
 end
 
-array2table(doubletable)
+tableMeans = array2table(doubletable);
+a = linspace(0,35,36)
 
-
+for i = 1:36
+    a(i) = sprintf('%.0f',a(i));
+end
 %%
 %Tabla de doble entrada con la estimación empírica de la media
 means = A
@@ -265,13 +268,14 @@ end
 
 %%
 %Exercise 12
+%
 means = mean(Temps,1);
 [minimum, minindex] = min(means);
 [minF,mint] = ecdf(Temps(:,minindex));
 tempMin = Temps(:,minindex);
 
 boot = bootstrp(10000,@max,tempMin);
-esperanzaBootstrap = mean(boot)
+esperanzaBootst3rap = mean(boot)
 max(tempMin)
 %confidence interval
 CIB = [prctile(boot,2.5) prctile(boot,97.5)] 
@@ -284,6 +288,8 @@ CIB = [prctile(boot,2.5) prctile(boot,97.5)]
 jack = jackknife(@max,tempMin);
 n = length(tempMin);
 jbias = (n-1)* (mean(jack)-max(tempMin)) % jackknife bias estimate
+
+varboot = var(boot)
 %%
 %Exercise 13
 N = 1000;
@@ -294,7 +300,8 @@ X = rand(N,n); %uniforme
 %Mínimo de cada uno, cambia la distribución. Es un criterio.
 minimum = min(X');
 hist(minimum);
-
+meanMins = mean(minimum);
+expectedMean = 1/(n+1);
 
 boot = bootstrp(1000,@var,minimum);
 BootstrapExpected = mean(boot)
@@ -305,6 +312,114 @@ hist(boot)
 CIB = [prctile(boot,2.5) prctile(boot,97.5)] 
 
 
-jack = jackknife(@min,y);
-n = length(y);
+jack = jackknife(@var,minimum);
+n = length(minimum);
 jbias = (n-1)* (mean(jack)-var(minimum)) % jackknife bias estimate
+
+
+
+%%
+%Exercise 15
+%Robust mahalanobis distance
+
+[minimum, minindex] = min(means);
+[maximum, maxindex] = max(means);
+
+minTemp = Temps(:,minindex);
+maxTemp = Temps(:,maxindex);
+dminTemp = mahal(minTemp,minTemp);
+
+
+%%
+%Exercise 16.2
+N = 1000;
+X = randn(N,1);
+
+[F,t,Flo,Fup,D] = ecdf(X');
+clf
+hold on
+plot(t,Fup);
+%plot(t,F);
+plot(t,normcdf(t,0,1))
+plot(t,Flo);
+legend({'Upper bound', 'Theoretical Normal Distribution','Lower bound'})
+title('Confidence band for the Standard Normal Distribution')
+xlabel('x')
+ylabel('CDF (x)')
+%%
+
+%Cauchy distribution
+r = trnd(1,100,1)
+[F,t,Flo,Fup,D] = ecdf(r');
+clf
+hold on
+plot(t,Fup);
+%plot(t,F);
+plot(t,tcdf(t,1))
+plot(t,Flo);
+legend({'Upper bound', 'Theoretical Cauchy Distribution','Lower bound'})
+title('Confidence band for the Cauchy Distribution')
+xlabel('x')
+ylabel('CDF (x)')
+%%
+%Exercise 16.3
+
+p = 0.75;
+q = 0.6;
+X = binopdf(0:1,1,p);
+Y = binopdf(0:1,1,q);
+[F,t] = ecdf(X);
+tq1 = t(find(t>=0));
+tq2 = t(find(t<0));
+Fq1 = F(find(t>=0));
+Fq2 = F(find(t<0));
+estimator = trapz(tq1,1-Fq1) - trapz(tq2,Fq2)
+
+%%
+%Exercise 16.4
+
+LSAT = [576 635 558 578 666 580 555 661 651 605 653 575 545 572 594]';
+GPA = [3.39 3.3 2.81 3.03 3.44 3.07 3 3.43 3.36 3.13 3.12 2.74 2.76 2.88 3.96]';
+X = [LSAT GPA];
+
+plot(GPA,LSAT,'o','color','#D95319')
+title('Correlation')
+xlabel('GPA')
+ylabel('LSAT')
+%%
+% correlation coefficient
+
+p = sum((GPA-mean(GPA)).*(LSAT - mean(LSAT)))/sqrt(sum((GPA-mean(GPA)).^2)).*sqrt(sum((LSAT-mean(LSAT)).^2))
+p = corr(GPA,LSAT)
+
+
+%Standard error using influence function
+
+%Standard error using jackknife
+
+%Standard error using bootstrap
+boot = bootstrp(1000,@corr,X);
+BootstrapExpected = mean(boot);
+BootstrapExpected = BootstrapExpected(2)
+
+m = 100;
+boots = zeros(m,1);
+for i = 1:m
+    boot = bootstrp(1000,@corr,X);
+    BootstrapExpected = mean(boot);
+    boots(i) = BootstrapExpected(2);
+end
+
+std(boots)
+
+
+%%
+means = mean(X);
+clf
+hold on
+plot (1:35, A)
+plot (1:35,means)
+title("Plug-in estimator vs Maximum Likelihood Estimator for the average temperature in Canada")
+xlabel("Year")
+ylabel("Estimated Temperature")
+
