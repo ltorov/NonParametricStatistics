@@ -9,7 +9,7 @@ Z = [X; Y];
 
 n = size(X);k = n(2);n = n(1); m =size(Y);m = m(1);
 
-Ix = zeros(n+m,k); Iy = zeros(n+m,k);
+Ix = zeros(n+m,1); Iy = zeros(n+m,1);
 for i = 1:n+m
     zi = Z(i);
     for j = 1:n
@@ -22,11 +22,17 @@ for i = 1:n+m
         Iy(i) = Iy(i)+norm(zi-yj);
     end
 end
+mdl = fitlm(Ix,Iy);
 
 if plotting
     clf
-    plot(Ix,Iy,'o')
+    %plot(Ix,Iy,'o')
+    hold on
+    plot(mdl)
+
 end
+
+
 
 I.Ix = Ix;
 I.Iy = Iy;
