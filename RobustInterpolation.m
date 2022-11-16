@@ -1,21 +1,28 @@
-function Interpolation = RobustInterpolation(x, newN)
+function Interpolation = RobustInterpolation(x, newN, containNan)
 
+if nargin<3
+    containNan = false
+end
 %x = readtable('return.txt');
 %x = table2array(x);
 
 n = size(x,1); N = size(x,2); prc = round(n*0.05); 
 idx1 = randperm(n,prc); idx2 = randi([1,N],prc,1);
-
 dirtyReturns = x; 
 
-for i=1:prc
-    dirtyReturns(idx1(i),idx2(i)) = NaN;
+if containNan == false
+    for i=1:prc
+        dirtyReturns(idx1(i),idx2(i)) = NaN;
+    end
 end
+
 
 [rows,col] = find(isnan(dirtyReturns));
 
 missingRows = dirtyReturns(rows,:);
 noMissRows = dirtyReturns; noMissRows(rows,:)= [];
+
+corr(x)-corr(noMissRows)
 
 a = newData(noMissRows',newN); data = a.Data;
 
@@ -35,7 +42,9 @@ for i =1:k
     for j = 1:m
         newr = New(j,:);
         newr(idxr) =[];
-        Diff(j)=  sum(abs(newr-r));
+        %Diff(j)=  sum(abs(newr-r));
+        Diff(j)=  norm(newr-r);
+        %Diff(j)=  norm(newr-r,inf);
     end
     [Min, minidx] = min(Diff);
     bestNewr = New(minidx(1),:);

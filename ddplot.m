@@ -1,40 +1,24 @@
-function I = ddplot(X,Y, plotting)
+function [Ix,Iy, mdl] = ddplot2(X,Y)
+%   ddplot is a depth-depth plot
+%   X,Y are multivariate data
+z= [X; Y];
 
-if nargin<3
-    plotting = true;
-end
+Ix= zeros(length(z),1);
+Iy= zeros(length(z),1);
 
-Z = [X; Y];
-
-
-n = size(X);k = n(2);n = n(1); m =size(Y);m = m(1);
-
-Ix = zeros(n+m,1); Iy = zeros(n+m,1);
-for i = 1:n+m
-    zi = Z(i);
-    for j = 1:n
-        xj = X(j);
-        Ix(i) = Ix(i)+norm(zi-xj);
+for i=1:length(z)
+    cont=0;
+    cont2=0;
+    for j=1:length(X)
+        cont= cont +  norm(z(i,:)-X(j,:));
     end
-
-    for j = 1:m
-        yj = X(j);
-        Iy(i) = Iy(i)+norm(zi-yj);
+    Ix(i)=cont;
+    for j=1:length(Y)
+        cont2= cont2 +  norm(z(i,:)-Y(j,:));
     end
+    Iy(i)=cont2;
 end
 mdl = fitlm(Ix,Iy);
-
-if plotting
-    clf
-    %plot(Ix,Iy,'o')
-    hold on
-    plot(mdl)
-
-end
-
-
-
-I.Ix = Ix;
-I.Iy = Iy;
-
+clf
+plot(mdl)
 end

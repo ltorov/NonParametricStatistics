@@ -4,10 +4,13 @@ function NewData = newData(x, m)
 
 n = size(x); N = n(2); n = n(1); 
 bands = floor(sqrt(N));
+bands = 50;
+
 
 for i = 1:n
     Tables(i) = FrequencyTable(x(i,:),N,bands);
 end
+
 
 F = zeros(n,N);
 for i = 1:n
@@ -28,15 +31,19 @@ for i = 1:m
         fij = Fi(j);
         table = Tables(j);
         acumrelative = table.AcumRelativeFrequencies;
-        a = sum(acumrelative<fij);
+        a = sum(acumrelative<=fij);
         if a == 0
             a = 1;
         end
         intervals = table.Intervals;
-        data(i,j)=mean(intervals(a,:));
+        inter = intervals(a,:);
+        lobound = inter(1); hibound = inter(2);
+        %data(i,j) = mean(intervals(a,:));
+        data(i,j) = lobound + (hibound-lobound)*rand(1);
     end
 end
 
+data = data+abs(prctile(x',50)-prctile(data,50));
 %Output
 NewData.Tables = Tables;
 NewData.EmpiricalDistributions = F;

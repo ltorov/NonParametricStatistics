@@ -23,3 +23,14 @@ medianaMuestral = median(y)
 %hist(m)
 %bootstrap confidence interval
 CIB = [prctile(m,2.5) prctile(m,97.5)] 
+%%
+%Estimar la varianza
+%Recordar que la mediana es sesgada, entonces no va a dar igual
+y = exprnd(5,100,1); %exponencial
+m = bootstrp(1000,@var,y);
+esperanzaBootstrap = mean(m)
+desviacionBootstrap = std(m)
+medianaMuestral = var(y)
+hist(m)
+%bootstrap confidence interval
+CIB = [prctile(m,2.5) prctile(m,97.5)] 
